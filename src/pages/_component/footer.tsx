@@ -45,7 +45,12 @@ const Footer = () => {
           IMAGES.linkedin,
           IMAGES.mail,
         ].map((icon, index) => (
-          <img key={index} src={icon} alt="img" className="h-4 " />
+          <img
+            key={index}
+            src={icon}
+            alt="img"
+            className="h-4 cursor-pointer"
+          />
         ))}
       </div>
     </footer>

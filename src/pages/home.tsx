@@ -36,7 +36,11 @@ const Home = () => {
             placeholder="Search by name, description, creator..."
             className="px-4 py-2 flex-1 outline-none bg-transparent text-[#7A7A7E]"
           />
-          <img src={IMAGES.search} className="w-5" alt="search" />
+          <img
+            src={IMAGES.search}
+            className="w-5 cursor-pointer"
+            alt="search"
+          />
         </div>
         <CustomSelect
           options={[
@@ -52,7 +56,7 @@ const Home = () => {
         ))}
       </div>
       <div className="flex flex-col items-center">
-        <button className="bg-[#1E1E1E] text-[#C6C8CF] px-6 py-2 rounded-md mt-6">
+        <button className="bg-[#1E1E1E] text-[#C6C8CF] px-6 py-2 rounded-md mt-6 bg-opacity-50 hover:bg-opacity-100">
           Load More
         </button>
         <p className="text-[#585858] text-xs mt-4">

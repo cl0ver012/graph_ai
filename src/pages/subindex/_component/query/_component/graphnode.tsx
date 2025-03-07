@@ -49,7 +49,7 @@ const GraphNodes = () => {
     <div className="relative flex-1 max-w-3xl border border-[#585858] p-6 rounded-lg ">
       <img
         src={IMAGES.preview}
-        className="w-8 absolute top-5 right-5"
+        className="w-8 absolute top-5 right-5 cursor-pointer"
         alt="preview"
       />
 

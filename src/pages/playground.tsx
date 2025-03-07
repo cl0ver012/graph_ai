@@ -15,7 +15,11 @@ function Playground() {
     <div className="min-h-screen pb-10">
       <Navbar />
       <Link to="#" className="flex items-center gap-2 text-[#C6C8CF] mb-16">
-        <img src={IMAGES.help_circle} className="w-4" alt="help_circle" />
+        <img
+          src={IMAGES.help_circle}
+          className="w-4 cursor-pointer"
+          alt="help_circle"
+        />
         Help
       </Link>
       <div className="flex gap-12">
@@ -25,7 +29,11 @@ function Playground() {
               <img src={IMAGES.logo} className="w-6" alt="logo" />
               AI Name
             </div>
-            <img src={IMAGES.search} className="w-4" alt="search" />
+            <img
+              src={IMAGES.search}
+              className="w-4 cursor-pointer"
+              alt="search"
+            />
           </div>
         </div>
         <div className="w-3/6">
@@ -74,7 +82,7 @@ function Playground() {
             {tags.map((tag) => (
               <button
                 key={tag}
-                className={`px-4 py-1.5 text-xs rounded-full border border-[#7A7A7E] text-[#7A7A7E] ${
+                className={`px-4 py-1.5 text-xs rounded-full border border-[#7A7A7E] text-[#7A7A7E] hover:border-white/70 hover:text-white/70 ${
                   selectedTag === tag ? "border-white" : ""
                 }`}
                 onClick={() => setSelectedTag(tag)}
@@ -87,15 +95,17 @@ function Playground() {
         <div className="w-2/6 flex flex-col  bg-[#1E1E1E] p-5 rounded-lg">
           <div className="flex items-start justify-between gap-2 ">
             <h2 className=" font-semibold text-white">Schema Preview</h2>
-            <button className="flex items-center gap-2 bg-white bg-opacity-10 px-2 py-1 rounded-md">
+            <button className="flex items-center gap-2 bg-white bg-opacity-10 hover:bg-opacity-20 px-2 py-1 rounded-md">
               <div className="text-white">JSON</div>
               <img src={IMAGES.exchange} alt={"exchange"} className="h-4" />
             </button>
           </div>
           <div className="flex-1" />
           <div className="flex items-start justify-between gap-2 ">
-            <img src={IMAGES.copy} alt={"copy"} className="h-4" />
-            <button className="flex items-center gap-2 bg-white bg-opacity-10 px-2 py-1 rounded-md">
+            <div className="hover:bg-white/10 rounded-lg cursor-pointer p-1.5">
+              <img src={IMAGES.copy} className="w-4" alt="copy" />
+            </div>
+            <button className="flex items-center gap-2 bg-white bg-opacity-10 hover:bg-opacity-20 px-2 py-1 rounded-md">
               <div className="text-white">Export</div>
             </button>
           </div>

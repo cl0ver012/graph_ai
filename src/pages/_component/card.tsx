@@ -25,7 +25,13 @@ const Card = () => {
       <div className="text-[#7A7A7E] text-xs mt-10">
         <div className="flex items-center gap-2 mb-4">
           <p>Created by: 0x4D6a...B91F</p>
-          <img src={IMAGES.copy} className="w-5" alt="copy" />
+
+          <button
+            onClick={() => {}}
+            className="hover:bg-white/10 rounded-lg cursor-pointer p-1.5"
+          >
+            <img src={IMAGES.copy} className="w-4" alt="copy" />
+          </button>
         </div>
         <p>Creation date: Jan 15, 2024</p>
       </div>

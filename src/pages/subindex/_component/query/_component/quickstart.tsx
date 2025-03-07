@@ -59,7 +59,11 @@ fetch('https://api.graphRAG.com/api/{api-key}/subindexes/id/5zvR82QoaXYFyDEKLZ9t
 
           <div className="rounded-lg mt-2">
             <div className="flex gap-1 items-center mb-2">
-              <img src={IMAGES.info} className="w-4" alt="info" />
+              <img
+                src={IMAGES.info}
+                className="w-4 cursor-pointer"
+                alt="info"
+              />
               <span className="uppercase text-white text-opacity-65 text-xs">
                 Query URL format
               </span>
@@ -78,11 +82,11 @@ fetch('https://api.graphRAG.com/api/{api-key}/subindexes/id/5zvR82QoaXYFyDEKLZ9t
             <p className="uppercase text-white text-opacity-65 text-xs">
               Api key
             </p>
-            <div className="text-sm flex items-center gap-4 bg-[#ffffff1e] px-4 py-1 text-[#C6C8CF] rounded-md">
+            <div className="text-sm flex items-center gap-4 bg-[#ffffff1e] hover:bg-[#ffffff2c] cursor-pointer px-4 py-1 text-[#C6C8CF] rounded-md">
               See your API keys
               <img
                 src={IMAGES.arrow_up_right}
-                className="w-4"
+                className="w-4 p-1.5 "
                 alt="arrow_up_right"
               />
             </div>
@@ -109,7 +113,9 @@ fetch('https://api.graphRAG.com/api/{api-key}/subindexes/id/5zvR82QoaXYFyDEKLZ9t
           <div className=" rounded-lg mt-2 bg-white bg-opacity-10 overflow-hidden">
             <div className="flex justify-between  items-center bg-[#FFFFFF05] p-2">
               <span className="text-[#FFFFFFA3] text-sm">Query URL format</span>
-              <img src={IMAGES.copy} className="w-4" alt="copy" />
+              <div className="hover:bg-white/10 rounded-lg cursor-pointer p-1.5">
+                <img src={IMAGES.copy} className="w-4" alt="copy" />
+              </div>
             </div>
             <p className="text-gray-300 text-sm p-4">
               1. https://api.GraphRAG.com/subindexes/name/ethereum/
@@ -127,26 +133,32 @@ fetch('https://api.graphRAG.com/api/{api-key}/subindexes/id/5zvR82QoaXYFyDEKLZ9t
             Example Repository
             <img
               src={IMAGES.arrow_up_right}
-              className="w-4"
-              alt="arrow_up_right"
+              className="w-4 cursor-pointer"
+              alt="arrow_up_right "
             />
           </div>
         </div>
         <div className="rounded-lg mt-2 bg-white bg-opacity-10 overflow-hidden">
-          <div className="flex border-b border-white border-opacity-15 bg-[#FFFFFF05]">
-            {["cURL", "React", "NextJS", "Node"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm ${
-                  activeTab === tab
-                    ? "border-b-2 border-[#6F4CFF] text-white"
-                    : "text-gray-500"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+          <div className="flex border-b border-white border-opacity-15 bg-[#FFFFFF05] justify-between">
+            <div className="flex items-center">
+              {["cURL", "React", "NextJS", "Node"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 text-sm hover:text-white ${
+                    activeTab === tab
+                      ? "border-b-2 border-[#6F4CFF] text-white"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="hover:bg-white/10 rounded-lg cursor-pointer p-1.5 m-2">
+              <img src={IMAGES.copy} className="w-4" alt="copy" />
+            </div>
           </div>
 
           <div className=" p-4 rounded-lg mt-2">

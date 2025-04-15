@@ -90,7 +90,10 @@ const CreateSubindex = () => {
 
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
-      if (step === 1) return;
+      if (step === 1) {
+        router.back();
+        return;
+      }
       e.preventDefault();
       setShowModal(true);
       window.history.pushState(null, "", window.location.href);

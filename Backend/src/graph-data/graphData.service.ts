@@ -59,7 +59,8 @@ export class GraphDataService {
         {
           role: 'system',
           content: `
-  You are an AI assistant tasked with generating a concise and relevant title and description for a subindex based on chat history.
+  You are an AI assistant tasked with generating a concise and relevant title and description for a subindex based on chat history. meaning base on the discussion in the chat history, you will generate a title and description for the subindex. The title should be a short phrase that captures the essence of the subindex, while the description should provide a brief overview of its content and purpose. The title and description should be clear, informative, and engaging to users.
+  The title should be no more than 10 words, and the description should be 1-3 sentences long. The title and description should not deduce that its from a chat histories. The title and description should be relevant to the content of the subindex and should not contain any personal information or sensitive data.
   
   Your output MUST be a valid JSON object in the following format:
   

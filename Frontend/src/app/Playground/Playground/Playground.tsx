@@ -1,12 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FiSearch } from "react-icons/fi";
 import { IoMdHelpCircleOutline, IoMdSend } from "react-icons/io";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import Navbar from "@/app/Navbar/page";
 import { v4 as uuidv4 } from "uuid";
 import { FiPlus } from "react-icons/fi";
+
+interface ChatMessage {
+  _id: string;
+  type: string;
+  message: string;
+}
+
+interface GraphData {
+  nodes: { id: string; type: string }[];
+  links: { source: string; target: string }[];
+}
 
 const Card = ({
   children,
@@ -52,39 +63,26 @@ const Button = ({
 const Playground = () => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<
-    { id: string; sender: string; text: string }[]
+    { id: string; type: string; message: string }[]
   >([]);
   const [chatHistory, setChatHistory] = useState<
     { chatId: string; chatName: string; messages?: { text: string }[] }[]
   >([]);
-  const [selectedChat, setSelectedChat] = useState<string | null>(null); // State to track selected chat
+  const [selectedChat, setSelectedChat] = useState<string>("");
+  const [currentUserId, setCurrentUserId] = useState("");
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
 
-  interface ChatMessage {
-    _id: string;
-    sender: "user" | "bot";
-    text: string;
-  }
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  interface GraphData {
-    nodes: { id: string; type: string }[];
-    links: { source: string; target: string }[];
-  }
+  const [graphData] = useState<GraphData | null>(null);
 
-  const [graphData, setGraphData] = useState<GraphData | null>(null);
   useEffect(() => {
-    const storedChatId = localStorage.getItem("chatId");
-    if (storedChatId) {
-      setSelectedChat(storedChatId);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, []);
-
-  const currentChatId =
-    selectedChat ||
-    localStorage.getItem("chatId") ||
-    "e24f76c7-bd77-4197-8cb4-a74bc2a40c7b";
+  }, [messages]);
 
   useEffect(() => {
     fetchChatHistory();
@@ -97,6 +95,7 @@ const Playground = () => {
   }, [selectedChat]);
 
   const apiURL = process.env.NEXT_PUBLIC_API_URL;
+
   const handleDeleteChat = async () => {
     if (!chatToDelete) return;
     console.log(chatToDelete);
@@ -123,7 +122,7 @@ const Playground = () => {
 
   const fetchChatHistory = async () => {
     try {
-      const userId = localStorage.getItem("userId"); // ✅ Retrieve userId from localStorage
+      const userId = localStorage.getItem("userId");
 
       if (!userId) {
         console.error("User ID not found in localStorage.");
@@ -131,7 +130,6 @@ const Playground = () => {
       }
 
       const response = await fetch(`${apiURL}/chats/user/${userId}`, {
-        // ✅ Correct URL parameter
         headers: {
           "ngrok-skip-browser-warning": "true",
           "Content-Type": "application/json",
@@ -174,8 +172,8 @@ const Playground = () => {
         setMessages(
           data.messages.map((msg: ChatMessage) => ({
             id: msg._id,
-            sender: msg.sender,
-            text: msg.text,
+            type: msg.type,
+            message: msg.message,
           }))
         );
       } else {
@@ -189,6 +187,7 @@ const Playground = () => {
 
   const fetchRAGResponse = async (userMessage: string) => {
     try {
+      const userId = localStorage.getItem("userId");
       const apiendpoint = `https://${process.env.NEXT_PUBLIC_ENDPOINT}`;
       const response = await fetch(`${apiendpoint}/api/rag`, {
         method: "POST",
@@ -198,8 +197,8 @@ const Playground = () => {
         },
         body: JSON.stringify({
           query: userMessage,
-          database: "testdb",
-          user_id: "user123",
+          database: selectedChat,
+          user_id: userId,
           qa_model_id: "openrouter/deepseek/deepseek-chat",
           qa_model_kwargs: {
             api_key: process.env.OPENAI_API_KEY,
@@ -216,29 +215,7 @@ const Playground = () => {
         console.error("RAG API Error:", data);
         return "RAG API is currently unavailable. Please try again later.";
       }
-
-      const transactionHashes =
-        data.answer.answer.match(/0x[a-fA-F0-9]{64}/g) || [];
-      const address = (data.answer.answer.match(/0x[a-fA-F0-9]{40}/) || [])[0];
-
-      if (address) {
-        const nodes = [
-          { id: address, type: "central" },
-          ...transactionHashes.map((tx: string) => ({
-            id: tx,
-            type: "transaction",
-          })),
-        ];
-
-        const links = transactionHashes.map((tx: string) => ({
-          source: tx,
-          target: address,
-        }));
-
-        setGraphData({ nodes, links });
-      }
-
-      return data.answer.answer || "No answer provided.";
+      return data.answer.answer || "No Graph Response";
     } catch (error) {
       console.error("Error fetching RAG response:", error);
       return "There was an error fetching the response. Please try again.";
@@ -251,14 +228,14 @@ const Playground = () => {
     const userMessage = query.trim();
     setMessages((prev) => [
       ...prev,
-      { id: Date.now().toString(), sender: "user", text: userMessage },
+      { id: Date.now().toString(), type: "OUTGOING", message: userMessage },
     ]);
     setQuery("");
 
     const thinkingMessage = {
       id: "thinking",
-      sender: "bot",
-      text: "Thinking...",
+      type: "INCOMING",
+      message: "Thinking...",
     };
     setMessages((prev) => [...prev, thinkingMessage]);
 
@@ -267,24 +244,28 @@ const Playground = () => {
     setMessages((prev) =>
       prev
         .filter((msg) => msg.id !== "thinking")
-        .concat({ id: Date.now().toString(), sender: "bot", text: response })
+        .concat({
+          id: Date.now().toString(),
+          type: "INCOMING",
+          message: response,
+        })
     );
 
-    await sendChatToBackend(currentChatId, "user", userMessage);
-    await sendChatToBackend(currentChatId, "bot", response);
+    await sendChatToBackend(selectedChat, "OUTGOING", userMessage);
+    await sendChatToBackend(selectedChat, "INCOMING", response);
   };
 
   const sendChatToBackend = async (
     chatId: string,
-    sender: "user" | "bot",
-    text: string
+    type: string,
+    message: string
   ) => {
     try {
       const userId = localStorage.getItem("userId");
       const response = await fetch(`${apiURL}/chats/${userId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId, sender, text }),
+        body: JSON.stringify({ chatId, type, message }),
       });
 
       if (!response.ok) {
@@ -299,7 +280,7 @@ const Playground = () => {
   const handleNewChat = () => {
     const newChatId = uuidv4(); // Generate a new chat ID
     localStorage.setItem("chatId", newChatId); // Store new chat ID
-    setSelectedChat(newChatId); // Update state
+    setSelectedChat(newChatId);
     setMessages([]); // Clear previous messages
 
     // Add new chat to chat history
@@ -353,13 +334,15 @@ const Playground = () => {
                   <div
                     className={`flex items-center justify-between px-4 py-2 mb-2 rounded-lg cursor-pointer 
                         ${
-                          chat.chatId === currentChatId
+                          chat.chatId === selectedChat
                             ? "bg-gray-500 text-white"
                             : "bg-gray-400 hover:bg-gray-500"
                         }`}
-                    onClick={() => setSelectedChat(chat.chatId)}
+                    onClick={() => {
+                      setSelectedChat(chat.chatId);
+                    }}
                   >
-                    <span>{chat.chatName}</span>
+                    <span>{chat.chatId}</span>
                     <BsThreeDotsVertical
                       className="text-xl cursor-pointer"
                       onClick={(e) => {
@@ -427,23 +410,26 @@ const Playground = () => {
           </div>
 
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div
+            ref={containerRef}
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+          >
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex w-full ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
+                  msg.type === "OUTGOING" ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
                   className={`p-3 rounded-lg max-w-[75%] break-words w-fit
           ${
-            msg.sender === "user"
+            msg.type === "OUTGOING"
               ? "bg-gray-700 text-white"
               : "bg-gray-800 text-white"
           }`}
                 >
-                  {msg.text}
+                  {msg.message}
                 </div>
               </div>
             ))}

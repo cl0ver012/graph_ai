@@ -8,11 +8,6 @@ interface IWebSocketContext {
   sendMessage: (msg: string) => void;
   messages: WebSocketMessage[];
   connected: boolean;
-  graphData: {
-    nodes: GraphNode[];
-    links: GraphLink[];
-    messages?: { text: string }[];
-  };
 }
 
 interface WebSocketParams {
@@ -54,14 +49,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const [connected, setConnected] = useState(false);
   const websocketRef = useRef<WebSocket | null>(null);
   const latestParams = useRef<WebSocketParams | null>(null);
-  const [graphData, setGraphData] = useState<{
-    nodes: GraphNode[];
-    links: GraphLink[];
-    messages?: { text: string }[];
-  }>({
-    nodes: [],
-    links: [],
-  });
 
   const appendMessage = (type: WebSocketMessage["type"], message: string) => {
     setMessages((prev) => [
@@ -93,27 +80,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     ws.onmessage = (event) => {
       appendMessage("INCOMING", event.data);
-      const transactionHashes = event.data.match(/0x[a-fA-F0-9]{64}/g) || [];
-      const address = (event.data.match(/0x[a-fA-F0-9]{40}/) || [])[0];
-
-      if (address) {
-        const nodes = [
-          { id: address, type: "central" },
-          ...transactionHashes.map((tx: string) => ({
-            id: tx,
-            type: "transaction",
-          })),
-        ];
-
-        const links = transactionHashes.map((tx: string) => ({
-          source: tx,
-          target: address,
-        }));
-
-        const graphData = { nodes, links };
-        setGraphData(graphData);
-        console.log("Graph Data:", graphData);
-      }
+      sendChatToBackend(
+        latestParams.current?.dbName || "",
+        "INCOMING",
+        event.data,
+        latestParams.current?.userID || ""
+      );
     };
 
     ws.onclose = (data) => {
@@ -221,7 +193,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         sendMessage,
         messages,
         connected,
-        graphData,
       }}
     >
       {children}

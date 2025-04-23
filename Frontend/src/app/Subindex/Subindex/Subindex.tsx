@@ -49,7 +49,7 @@ const Subindex = () => {
         const data = await response.json();
         console.log("Fetched Data:", data);
         setGraphData(data);
-        setDynamicApiUrl(apiURL + data.endpoint);
+        setDynamicApiUrl(apiURL + "/rag/" + data.endpoint);
       } catch (error) {
         console.error("Error fetching graph data:", error);
       }
@@ -66,7 +66,7 @@ const Subindex = () => {
   const shortenedUrl =
     currentUrl.length > 25 ? currentUrl.substring(0, 25) + "..." : currentUrl;
 
-  const fullEndpoint = graphData?.endpoint || "Not Provided";
+  const fullEndpoint = dynamicApiUrl || "Not Provided";
 
   const shortenedEndpoint =
     fullEndpoint.length > 25
@@ -231,7 +231,7 @@ const Subindex = () => {
               <span>
                 QUERY ENDPOINT <br />
                 <a
-                  href={graphData?.endpoint}
+                  href={dynamicApiUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:underline"
@@ -341,12 +341,12 @@ const Subindex = () => {
             </div>
             <div className="mt-2 p-2 bg-gray-900 rounded-lg text-xs sm:text-sm break-all">
               <a
-                href={graphData?.endpoint}
+                href={dynamicApiUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-400 hover:underline"
               >
-                {graphData?.endpoint}
+                {dynamicApiUrl}
               </a>
             </div>
           </div>
@@ -381,12 +381,12 @@ const Subindex = () => {
               <span className="text-gray-400">Query Endpoint</span>
               <div className="p-2 truncate">
                 <a
-                  href={graphData?.endpoint}
+                  href={dynamicApiUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline"
+                  className="text-blue-400 overflow-hidden text-ellipsis hover:underline"
                 >
-                  {graphData?.endpoint}
+                  {dynamicApiUrl}
                 </a>
               </div>
             </div>
@@ -407,15 +407,15 @@ const Subindex = () => {
               <div className="flex border-b border-gray-700 p-3">
                 <span className="text-gray-500">Query URL format</span>
               </div>
-              <div className="p-4 break-all">
+              <div className="p-4 break-all overflow-hidden">
                 <pre className="text-gray-400">
                   <a
-                    href={graphData?.endpoint}
+                    href={dynamicApiUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
+                    className="text-blue-400 overflow-hidden text-ellipsis hover:underline"
                   >
-                    {graphData?.endpoint}
+                    {dynamicApiUrl}
                   </a>
                 </pre>
               </div>
@@ -443,8 +443,8 @@ const Subindex = () => {
               </button>
             ))}
           </div>
-          <div className="p-4">
-            <pre className="text-gray-400 text-wrap">
+          <div className="p-4 w-full overflow-hidden">
+            <pre className="text-gray-400 text-wrap ">
               {exampleCode[activeTab]}
             </pre>
           </div>

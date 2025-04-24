@@ -7,6 +7,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { GraphDataService } from './graphData.service';
+import axios from 'axios';
 
 @Controller('graphData')
 export class GraphDataController {
@@ -23,7 +24,9 @@ export class GraphDataController {
     @Param('userId') userId: string,
   ) {
     try {
-      const endpoint = 'secret endpoint';
+      const endpoint = this.graphDataService.encrypt(
+        JSON.stringify({ userId, chatId: body.chatId }),
+      );
       const details = await this.graphDataService.generateDetails({
         chatHistory: body.chats,
       });
@@ -47,10 +50,11 @@ export class GraphDataController {
     }
   }
 
-  @Get()
-  async getAllGraphData() {
+  @Get('all/:userId')
+  async getAllGraphData(@Param('userId') userId: string) {
     try {
-      return await this.graphDataService.getAllGraphData();
+      const data = { userId };
+      return await this.graphDataService.getAllGraphData(data);
     } catch (error) {
       console.error('Controller Error fetching Graph Data:', error);
       throw new InternalServerErrorException(
@@ -67,6 +71,31 @@ export class GraphDataController {
       console.error('Controller Error fetching Graph Data:', error);
       throw new InternalServerErrorException(
         error.message || 'Failed to fetch Graph Data',
+      );
+    }
+  }
+
+  @Get('/rag/:secret')
+  async handleGraphQuery(@Param('secret') secret: string) {
+    try {
+      const decrypted = this.graphDataService.decrypt(
+        decodeURIComponent(secret),
+      );
+      const config = JSON.parse(decrypted);
+
+      const response = await axios.post(
+        'http://localhost:3000/api/rag',
+        config,
+      );
+
+      return {
+        status: 'success',
+        result: response.data,
+      };
+    } catch (err: any) {
+      console.error('Decryption or internal query failed:', err);
+      throw new InternalServerErrorException(
+        err.response?.data?.message || err.message || 'Invalid or expired link',
       );
     }
   }

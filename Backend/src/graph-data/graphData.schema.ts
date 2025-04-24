@@ -15,6 +15,9 @@ export class GraphData {
   selectedProvider: string;
 
   @Prop({ required: true })
+  endpoint: string;
+
+  @Prop({ required: true })
   createdAt: Date;
 
   @Prop({ required: true })

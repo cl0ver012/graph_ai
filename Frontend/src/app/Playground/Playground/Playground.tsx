@@ -69,7 +69,6 @@ const Playground = () => {
     { chatId: string; chatName: string; messages?: { text: string }[] }[]
   >([]);
   const [selectedChat, setSelectedChat] = useState<string>("");
-  const [currentUserId, setCurrentUserId] = useState("");
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);

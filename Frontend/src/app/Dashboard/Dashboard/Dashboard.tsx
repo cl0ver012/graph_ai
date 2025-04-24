@@ -34,7 +34,7 @@ const Dashboard = () => {
 
     const fetchGraphData = async () => {
       try {
-        const response = await fetch(`${apiURL}/graphData`, {
+        const response = await fetch(`${apiURL}/graphData/all/${userId}`, {
           // ✅ Fetch based on userId
           headers: {
             "ngrok-skip-browser-warning": "true",

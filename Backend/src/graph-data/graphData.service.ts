@@ -43,12 +43,45 @@ export class GraphDataService {
     }
   }
 
-  async getAllGraphData(data?: { userId: string }): Promise<GraphData[]> {
+  async getAllGraphData(query?: {
+    userId?: string;
+    search?: string;
+    filters?: Record<string, any>;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<GraphData[]> {
     try {
-      if (data?.userId) {
-        return await this.graphDataModel.find({ userId: data.userId }).exec();
+      const conditions: any = {};
+
+      if (query?.userId) {
+        conditions.userId = query.userId;
       }
-      return await this.graphDataModel.find().exec();
+
+      // Add only non-empty filters
+      if (query?.filters) {
+        for (const [key, value] of Object.entries(query.filters)) {
+          if (value !== undefined && value !== null && value !== '') {
+            conditions[key] = value;
+          }
+        }
+      }
+
+      // Add search term condition only if not empty
+      if (query?.search && query.search.trim() !== '') {
+        conditions.$or = [
+          { indexName: { $regex: query.search, $options: 'i' } },
+          { description: { $regex: query.search, $options: 'i' } },
+        ];
+      }
+
+      const sort: any = {};
+      if (query?.sortBy && query.sortBy.trim() !== '') {
+        sort[query.sortBy] = query.sortOrder === 'desc' ? -1 : 1;
+      }
+
+      console.log(conditions);
+
+      return await this.graphDataModel.find(conditions).sort(sort).exec();
     } catch (error) {
       console.error('Service Error fetching Graph Data:', error);
       throw new InternalServerErrorException('Failed to fetch Graph Data');

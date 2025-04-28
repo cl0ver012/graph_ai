@@ -21,8 +21,10 @@ const Dashboard = () => {
   const router = useRouter();
   const [graphData, setGraphData] = useState<GraphDataItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [network, setNetwork] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const { isConnected } = useAppKitAccount(); // ✅ Get wallet connection status
+  const { isConnected } = useAppKitAccount();
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const apiURL = process.env.NEXT_PUBLIC_API_URL;
     const userId = localStorage.getItem("userId");
@@ -34,14 +36,18 @@ const Dashboard = () => {
 
     const fetchGraphData = async () => {
       try {
-        const response = await fetch(`${apiURL}/graphData/all/${userId}`, {
-          // ✅ Fetch based on userId
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-            "Content-Type": "application/json",
-          },
-          mode: "cors",
-        });
+        setLoading(true);
+        const response = await fetch(
+          `${apiURL}/graphData/all/${userId}?search=${searchQuery}&selectedProvider=${network}`,
+          {
+            // ✅ Fetch based on userId
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+              "Content-Type": "application/json",
+            },
+            mode: "cors",
+          }
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -58,25 +64,27 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Error fetching graph data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchGraphData();
-  }, [isConnected]);
+  }, [isConnected, searchQuery, network]);
 
   // Filter graphData based on searchQuery
-  const filteredData = graphData.filter((item) =>
-    [
-      item.indexName,
-      item.createdAt,
-      item.userId,
-      item.selectedProvider,
-      item.chatId,
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
+  // const filteredData = graphData.filter((item) =>
+  //   [
+  //     item.indexName,
+  //     item.createdAt,
+  //     item.userId,
+  //     item.selectedProvider,
+  //     item.chatId,
+  //   ]
+  //     .join(" ")
+  //     .toLowerCase()
+  //     .includes(searchQuery.toLowerCase())
+  // );
 
   const handleNavigation = () => {
     const userId = localStorage.getItem("userId"); // ✅ Retrieve userId from localStorage
@@ -157,17 +165,34 @@ const Dashboard = () => {
             <FaSearch className="text-white" />
           </div>
 
-          {/* Filter Button */}
-          <button className="ml-4 bg-gray-900 text-white py-2 px-6 rounded-3xl hover:bg-gray-800 transition">
-            Filter by
-          </button>
+          {/* Filter Dropdown for Network */}
+          <div className="ml-4 relative">
+            <select
+              className="bg-gray-900 text-white py-2 px-6 rounded-3xl hover:bg-gray-800 transition appearance-none cursor-pointer"
+              onChange={(e) => setNetwork(e.target.value)}
+            >
+              <option value="" disabled>
+                Filter by Network
+              </option>
+              <option value="">All</option>
+              <option value="Solana">Solana</option>
+              <option value="Etherium">Ethereum</option>
+            </select>
+          </div>
         </section>
 
         {/* SubIndex Cards Section */}
         <section className="py-8 px-4 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredData.length > 0 ? (
-              filteredData.map((item, index) => {
+            {loading ? (
+              [1, 2, 3].map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-[#1E1E1E] text-white p-4 w-full h-auto min-h-[350px] rounded-[20px] opacity-60 border border-transparent animate-pulse"
+                />
+              ))
+            ) : graphData.length > 0 ? (
+              graphData.map((item, index) => {
                 const shortDescription =
                   (item.description?.length ?? 0) > 100
                     ? item.description?.substring(0, 100) + "..."

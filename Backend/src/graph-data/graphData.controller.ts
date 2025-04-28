@@ -5,6 +5,7 @@ import {
   Body,
   InternalServerErrorException,
   Param,
+  Query,
 } from '@nestjs/common';
 import { GraphDataService } from './graphData.service';
 import axios from 'axios';
@@ -51,9 +52,24 @@ export class GraphDataController {
   }
 
   @Get('all/:userId')
-  async getAllGraphData(@Param('userId') userId: string) {
+  async getAllGraphData(
+    @Param('userId') userId: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query() query?: Record<string, any>,
+  ) {
     try {
-      const data = { userId };
+      const { search: _, sortBy: __, sortOrder: ___, ...filters } = query || {};
+
+      const data = {
+        userId,
+        search,
+        filters,
+        sortBy,
+        sortOrder,
+      };
+
       return await this.graphDataService.getAllGraphData(data);
     } catch (error) {
       console.error('Controller Error fetching Graph Data:', error);

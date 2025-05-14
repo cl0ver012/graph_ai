@@ -137,9 +137,9 @@ const Subindex = () => {
 
   const tabs = ["Query"];
 
-  const handlePlayground = () => {
-    router.push("/Playground");
-  };
+  // const handlePlayground = () => {
+  //   router.push("/Playground");
+  // };
 
   const exampleCode = {
     cURL: `
@@ -273,8 +273,10 @@ const Subindex = () => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <button className="bg-[#1A1A1A] hover:bg-[#2A2A2A] text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
+              Use This Index
+            </button>
             <button
-              onClick={handlePlayground}
               className="bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-600 text-sm"
             >
               🚀 Test Index
@@ -395,10 +397,9 @@ const Subindex = () => {
             <div className="flex justify-between whitespace-nowrap mt-2 text-xs sm:text-sm">
               <span className="text-gray-400">GraphQL Playground Link</span>
               <div
-                onClick={handlePlayground}
                 className="p-2 underline break-all cursor-pointer"
               >
-                PlayGround
+                {/* PlayGround */}
               </div>
             </div>
 

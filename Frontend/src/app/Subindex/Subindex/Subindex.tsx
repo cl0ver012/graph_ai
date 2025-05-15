@@ -5,6 +5,13 @@ import { useEffect, useState } from "react";
 import Navbar from "@/app/Navbar/page";
 import { socketEndpoint } from "@/context/indexSocket";
 import GenericViewer from "@/app/Create-Subindex/Create-Subindex/GenericViewer";
+import dynamic from 'next/dynamic';
+
+// Import GraphQL Playground dynamically to prevent SSR issues
+const GraphQLPlayground = dynamic(
+  () => import('@/components/GraphQLPlayground'),
+  { ssr: false }
+);
 
 interface GraphData {
   chatId: string;
@@ -91,12 +98,24 @@ const Subindex = () => {
             },
           }
         );
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.warn(`Failed to fetch HTML graph. Status: ${res.status}. Response: ${errorText}`);
+          setHtmlGraph(null);
+          return;
+        }
+
         const data = await res.json();
         if (data.html) {
           setHtmlGraph(data.html);
+        } else {
+          console.warn("HTML Graph API response OK, but no HTML content found.");
+          setHtmlGraph(null);
         }
       } catch (error) {
-        console.error(`Error fetching content`, error);
+        console.error("Error during HTML graph fetch operation:", error);
+        setHtmlGraph(null);
       } finally {
         setLoading(false);
       }
@@ -115,17 +134,38 @@ const Subindex = () => {
             },
           }
         );
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.warn(`Failed to fetch schema. HTTP Status: ${res.status}. Response: ${errorText}`);
+          setSchema(null);
+          return;
+        }
+
         const data = await res.json();
-        if (
-          typeof data.schema === "string" &&
-          data.schema.toLowerCase().startsWith("error")
-        ) {
-          throw data.schema;
-        } else {
+
+        if (data && data.code === "Neo.ClientError.Database.DatabaseNotFound") {
+          console.warn(`Schema not found (API indicated, expected during index creation): ${data.message}`);
+          setSchema(null);
+        }
+        else if (typeof data.schema === "string" && data.schema.toLowerCase().startsWith("error")) {
+          console.warn(`Schema API returned an error string in schema property: ${data.schema}`);
+          setSchema(null);
+        }
+        else if (data.schema !== undefined) {
           setSchema(data.schema);
         }
-      } catch (error) {
-        console.error(`Error fetching content`, error);
+        else {
+          console.warn("Schema API response OK, but no valid schema content found or structure is unexpected.", data);
+          setSchema(null);
+        }
+      } catch (error: any) {
+        if (error && error.code === "Neo.ClientError.Database.DatabaseNotFound") {
+          console.warn(`Schema not found (error caught, expected during index creation): ${error.message}`);
+        } else {
+          console.error("Unexpected error during schema fetch operation:", error);
+        }
+        setSchema(null);
       } finally {
         setLoading(false);
       }
@@ -136,10 +176,6 @@ const Subindex = () => {
   }, [graphData]);
 
   const tabs = ["Query"];
-
-  // const handlePlayground = () => {
-  //   router.push("/Playground");
-  // };
 
   const exampleCode = {
     cURL: `
@@ -241,20 +277,6 @@ const Subindex = () => {
               </span>
               <span className="mx-4 text-white">|</span>
               <span>
-                GRAPHQL PLAYGROUND LINK
-                <br />
-                <a
-                  href={currentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline"
-                >
-                  {shortenedUrl}
-                </a>
-              </span>
-
-              <span className="mx-4 text-white">|</span>
-              <span>
                 QUERY DOCUMENTATION
                 <br />
                 <a
@@ -271,16 +293,6 @@ const Subindex = () => {
               </span>
               <span className="ml-2 text-gray-400 text-sm">Progress: 100%</span>
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button className="bg-[#1A1A1A] hover:bg-[#2A2A2A] text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out shadow-md">
-              Use This Index
-            </button>
-            <button
-              className="bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-600 text-sm"
-            >
-              🚀 Test Index
-            </button>
           </div>
         </div>
       </div>
@@ -324,6 +336,19 @@ const Subindex = () => {
           className=" p-4 bg-[#1E1E1E] text-white rounded-lg h-96 flex justify-center items-center text-sm"
         >
           <GenericViewer content={htmlGraph} type="html" loading={loading} />
+        </div>
+      </div>
+
+      {/* GraphQL Playground Section */}
+      <div className="p-8">
+        <h2 className="text-xl font-bold mb-4">GraphQL Playground</h2>
+        <div className="w-full">
+          <GraphQLPlayground 
+            endpoint={dynamicApiUrl} 
+            height="500px"
+            userId={graphData?.userId}
+            dbId={graphData?.chatId}
+          />
         </div>
       </div>
 
@@ -390,16 +415,6 @@ const Subindex = () => {
                 >
                   {dynamicApiUrl}
                 </a>
-              </div>
-            </div>
-
-            {/* GraphQL Playground Link */}
-            <div className="flex justify-between whitespace-nowrap mt-2 text-xs sm:text-sm">
-              <span className="text-gray-400">GraphQL Playground Link</span>
-              <div
-                className="p-2 underline break-all cursor-pointer"
-              >
-                {/* PlayGround */}
               </div>
             </div>
 
@@ -486,3 +501,4 @@ const Subindex = () => {
 };
 
 export default Subindex;
+

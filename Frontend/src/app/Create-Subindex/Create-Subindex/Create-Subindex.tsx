@@ -51,7 +51,7 @@ const CreateSubindex = () => {
           setHtmlGraph(data.html);
         }
       } catch (error) {
-        console.error(`Error fetching content`, error);
+        console.log(`Error fetching content`, error);
       } finally {
         setLoading(false);
       }
@@ -78,7 +78,7 @@ const CreateSubindex = () => {
           setSchema(data.schema);
         }
       } catch (error) {
-        console.error(`Error fetching content`, error);
+        console.log(`Error fetching content`, error);
       } finally {
         setLoading(false);
       }

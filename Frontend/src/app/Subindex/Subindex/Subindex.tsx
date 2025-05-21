@@ -36,6 +36,9 @@ const Subindex = () => {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const apiURL = process.env.NEXT_PUBLIC_API_URL;
 
+  // Construct the query-index endpoint URL
+  const queryIndexEndpoint = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/query-index`;
+
   useEffect(() => {
     const id = searchParams.get("id");
 
@@ -182,15 +185,21 @@ const Subindex = () => {
     >_ bash
     curl -X POST \\
     -H "Content-Type: application/json" \\
-    -d '{"query": "{ factories(first: 5) { id poolCount txCount totalVolumeUSD } }"}' \\
-    ${dynamicApiUrl}
+    -d '{
+      "query": "YOUR_QUESTION_HERE",
+      "userId": "${graphData?.userId || 'YOUR_USER_ID'}",
+      "databaseId": "${graphData?.chatId || 'YOUR_DATABASE_ID'}"
+    }' \\
+    ${queryIndexEndpoint}
         `,
     React: `
     import axios from 'axios';
     
     const fetchData = async () => {
-        const response = await axios.post("${dynamicApiUrl}", {
-            query: "{ factories(first: 5) { id poolCount txCount totalVolumeUSD } }"
+        const response = await axios.post("${queryIndexEndpoint}", {
+            query: "YOUR_QUESTION_HERE",
+            userId: "${graphData?.userId || 'YOUR_USER_ID'}",
+            databaseId: "${graphData?.chatId || 'YOUR_DATABASE_ID'}"
         });
         console.log(response.data);
     };
@@ -198,35 +207,34 @@ const Subindex = () => {
     fetchData();
         `,
     NextJS: `
-    import { useEffect, useState } from 'react';
-    
-    export default function Home() {
-        const [data, setData] = useState(null);
-    
-        useEffect(() => {
-            fetch("${dynamicApiUrl}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    query: "{ factories(first: 5) { id poolCount txCount totalVolumeUSD } }"
-                })
-            })
-            .then(res => res.json())
-            .then(data => setData(data));
-        }, []);
-    
-        return <pre>{JSON.stringify(data, null, 2)}</pre>;
+    // In your API route or server component
+    async function askQuestion() {
+      const response = await fetch("${queryIndexEndpoint}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            query: "YOUR_QUESTION_HERE",
+            userId: "${graphData?.userId || 'YOUR_USER_ID'}",
+            databaseId: "${graphData?.chatId || 'YOUR_DATABASE_ID'}"
+        })
+      });
+      const data = await response.json();
+      console.log(data);
+      return data;
     }
+    // Call askQuestion() where needed
         `,
     Node: `
-    const fetch = require('node-fetch');
+    const fetch = require('node-fetch'); // or import fetch from 'node-fetch';
     
     async function fetchData() {
-        const response = await fetch("${dynamicApiUrl}${graphData?.indexName}", {
+        const response = await fetch("${queryIndexEndpoint}", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                query: "{ factories(first: 5) { id poolCount txCount totalVolumeUSD } }"
+                query: "YOUR_QUESTION_HERE",
+                userId: "${graphData?.userId || 'YOUR_USER_ID'}",
+                databaseId: "${graphData?.chatId || 'YOUR_DATABASE_ID'}"
             })
         });
         const data = await response.json();
@@ -265,14 +273,14 @@ const Subindex = () => {
 
               <span className="mx-4 text-white">|</span>
               <span>
-                QUERY ENDPOINT <br />
+                NATURAL LANGUAGE QUERY ENDPOINT <br />
                 <a
-                  href={dynamicApiUrl}
+                  href={queryIndexEndpoint}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:underline"
                 >
-                  {shortenedEndpoint}
+                  {queryIndexEndpoint}
                 </a>
               </span>
               <span className="mx-4 text-white">|</span>
@@ -358,62 +366,44 @@ const Subindex = () => {
         <div className="p-4 rounded-lg bg-[#1E1E1E]">
           <h2 className="text-lg sm:text-xl font-bold">Query Quick Start</h2>
           <p className="text-gray-400 mt-2 text-sm">
-            The production URL for querying this Subindex on the decentralized
-            network.
+            Use the endpoint below to query your Subindex with natural language.
+            Send a POST request with a JSON body containing your query, userId, and databaseId.
           </p>
           <div className="mt-4">
             <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-gray-400">Query URL Format</span>
-              <span className="text-gray-500 truncate">[Web3 Graph Index]</span>
+              <span className="text-gray-400">Query URL</span>
+              <span className="text-gray-500 truncate">[POST Request]</span>
             </div>
             <div className="mt-2 p-2 bg-gray-900 rounded-lg text-xs sm:text-sm break-all">
               <a
-                href={dynamicApiUrl}
+                href={queryIndexEndpoint}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-400 hover:underline"
               >
-                {dynamicApiUrl}
+                {queryIndexEndpoint}
               </a>
             </div>
           </div>
         </div>
 
-        {/* API Key and Query Endpoint Section */}
+        {/* API Key and Query Endpoint Section - Simplified */}
         <div className="p-4 rounded-lg bg-[#1E1E1E] col-span-1 sm:col-span-2 lg:col-span-3">
           <h2 className="text-lg sm:text-xl font-bold">
-            API Key and Query Endpoint
+            Query Endpoint (Natural Language)
           </h2>
           <div className="mt-4">
-            {/* API Key */}
-            <div className="relative flex justify-between text-xs sm:text-sm border-b border-gray-700 p-2">
-              <span className="text-gray-400">API Key</span>
-              <button
-                className="text-white p-2 text-xs bg-gray-800 rounded-lg"
-                onClick={() => setShowPopup(!showPopup)}
-              >
-                See your API key
-              </button>
-
-              {showPopup && (
-                <div className="absolute top-10 right-0 bg-gray-900 text-white p-3 rounded-md shadow-lg border border-gray-700 text-xs">
-                  {process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-                    "API Key not available"}
-                </div>
-              )}
-            </div>
-
             {/* Query Endpoint */}
             <div className="flex justify-between whitespace-nowrap mt-2 border-b border-gray-700 p-2 text-xs sm:text-sm">
-              <span className="text-gray-400">Query Endpoint</span>
+              <span className="text-gray-400">Endpoint URL</span>
               <div className="p-2 truncate">
                 <a
-                  href={dynamicApiUrl}
+                  href={queryIndexEndpoint}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 overflow-hidden text-ellipsis hover:underline"
                 >
-                  {dynamicApiUrl}
+                  {queryIndexEndpoint}
                 </a>
               </div>
             </div>
@@ -421,18 +411,15 @@ const Subindex = () => {
             {/* Query URL Box */}
             <div className="bg-gray-900 rounded-lg text-xs sm:text-sm mt-4 w-full">
               <div className="flex border-b border-gray-700 p-3">
-                <span className="text-gray-500">Query URL format</span>
+                <span className="text-gray-500">Example Request Body (POST)</span>
               </div>
               <div className="p-4 break-all overflow-hidden">
-                <pre className="text-gray-400">
-                  <a
-                    href={dynamicApiUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 overflow-hidden text-ellipsis hover:underline"
-                  >
-                    {dynamicApiUrl}
-                  </a>
+                <pre className="text-gray-400 text-wrap ">
+                  {`{
+  "query": "Your natural language question...",
+  "userId": "${graphData?.userId || 'your_user_id'}",
+  "databaseId": "${graphData?.chatId || 'your_database_id'}"
+}`}
                 </pre>
               </div>
             </div>
@@ -442,7 +429,7 @@ const Subindex = () => {
 
       {/* Example Usage and Documentation */}
       <div id="documentation" className="p-8">
-        <h2 className="text-xl font-bold">Example usage</h2>
+        <h2 className="text-xl font-bold">Example usage (Natural Language Query)</h2>
         <div className="bg-[#1E1E1E] rounded-lg text-sm mt-4 w-full">
           <div className="flex border-b border-gray-700">
             {Object.keys(exampleCode).map((tab) => (

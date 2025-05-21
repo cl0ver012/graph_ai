@@ -1,5 +1,13 @@
 const HtmlViewer = ({ htmlContent }: { htmlContent: string }) => {
-  const blob = new Blob([htmlContent], { type: "text/html" });
+  // Inject jQuery before the HTML content to ensure it's available
+  const wrappedHtmlContent = `
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" 
+            integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" 
+            crossorigin="anonymous"></script>
+    ${htmlContent}
+  `;
+  
+  const blob = new Blob([wrappedHtmlContent], { type: "text/html" });
   const url = URL.createObjectURL(blob);
 
   return (
